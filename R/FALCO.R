@@ -134,9 +134,9 @@ Compute.QQ <- function(X) {
 
 Est.delta <- function(Y, Cov=NULL, V, is.sqrt=F) {
   if (is.sqrt) {
-    tmp <- V$Rinv
+    tmp <- 1/2*(V$Rinv + t(V$Rinv))
   } else {
-    tmp <- sqrt.mat2(V)$Rinv
+    tmp <- sqrt.mat2(V)$Rinv; tmp <- 1/2*(tmp + t(tmp))
   }
   if (!is.null(Cov)) {
     Cov <- cbind(Cov)
