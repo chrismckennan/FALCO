@@ -35,7 +35,7 @@ CBCV_plus <- function(Y, Cov=NULL, maxK=20, B=NULL, nFolds=5, simpleDelta=T, par
   if (is.matrix(B) || (is.list(B) && length(B) == 1)) {
     if (is.list(B)) {B <- B[[1]]}
     if (simpleDelta) {  #Simple rho
-      return( ChooseK_parallel.simrho(Y=Y, X=Cov, maxK=maxK, B=B, nFolds=nFolds, tol.rho=tol.rho, max.iter.rho=max.iter.rho, svd.method=svd.method, plotit=plotit, n_cores=n_cores) )
+      return( ChooseK_parallel.simrho(Y=Y, X=Cov, maxK=maxK, B=B, nFolds=nFolds, partition.params=partition.params, tol.rho=tol.rho, max.iter.rho=max.iter.rho, svd.method=svd.method, plotit=plotit, n_cores=n_cores) )
     } else {
       return( ChooseK_parallel(Y=Y, X=Cov, maxK=maxK, B=B, nFolds=nFolds, tol.rho=tol.rho, max.iter.rho=max.iter.rho, svd.method=svd.method, plotit=plotit, n_cores=n_cores) )
     }
@@ -47,7 +47,7 @@ CBCV_plus <- function(Y, Cov=NULL, maxK=20, B=NULL, nFolds=5, simpleDelta=T, par
     B <- IncludeIdent(B)
     D.ker <- CreateD.ker(A.equ)
     if (simpleDelta) {  #Simple rho
-      return( ChooseK_parallel.multB.simrho( Y=Y, X=Cov, maxK=maxK, B=B, nFolds=nFolds, A.lin=A.ine, c.lin=c.ine, D.ker=D.ker, Var.0=Var.0, tol.rho=tol.rho, max.iter.rho=max.iter.rho, svd.method=svd.method, plotit=plotit, n_cores=n_cores ) )
+      return( ChooseK_parallel.multB.simrho( Y=Y, X=Cov, maxK=maxK, B=B, nFolds=nFolds, partition.params=partition.params, A.lin=A.ine, c.lin=c.ine, D.ker=D.ker, Var.0=Var.0, tol.rho=tol.rho, max.iter.rho=max.iter.rho, svd.method=svd.method, plotit=plotit, n_cores=n_cores ) )
     } else {
       return( ChooseK_parallel.multB(Y=Y, X=Cov, maxK=maxK, B=B, nFolds=nFolds, A.lin=A.ine, c.lin=c.ine, D.ker=D.ker, Var.0=Var.0, tol.rho=tol.rho, max.iter.rho=max.iter.rho, svd.method=svd.method, plotit=plotit, n_cores=n_cores) )
     }

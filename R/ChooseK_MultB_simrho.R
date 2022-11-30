@@ -4,7 +4,7 @@
 library(parallel)
 library(irlba)
 
-ChooseK_parallel.multB.simrho <- function(Y, X=NULL, maxK, B, nFolds=10, A.lin=NULL, c.lin=NULL, D.ker=NULL, Var.0=NULL, tol.rho=1e-3, max.iter.rho=10, svd.method="fast", plotit=T, n_cores=NULL) {
+ChooseK_parallel.multB.simrho <- function(Y, X=NULL, maxK, B, nFolds=10, partition.params=list(chr=NULL,pos=NULL,size=1e6), A.lin=NULL, c.lin=NULL, D.ker=NULL, Var.0=NULL, tol.rho=1e-3, max.iter.rho=10, svd.method="fast", plotit=T, n_cores=NULL) {
   if (maxK < 1) {
     return(0)
   }
@@ -24,12 +24,20 @@ ChooseK_parallel.multB.simrho <- function(Y, X=NULL, maxK, B, nFolds=10, A.lin=N
   
   SYY <- 1/p * t(Y) %*% Y
   
+  ##Partition units into folds##
+  if (!is.null(partition.params$chr)) {
+    tmp.ind <- order(partition.params$chr,partition.params$pos)
+    partition.params$chr <- partition.params$chr[tmp.ind]; partition.params$pos <- partition.params$pos[tmp.ind]
+    Y <- Y[tmp.ind,]; rm(tmp.ind)
+  }
+  folds.rows <- Partition.Units(p = p, nFolds = nFolds, partition.params = partition.params)
+  
   ##Permute rows of Y##
-  perm.rows <- order(runif(p))
-  Y <- Y[perm.rows,]
+  #perm.rows <- order(runif(p))
+  #Y <- Y[perm.rows,]
   
   ##Perform K-fold cross validation##
-  folds.rows <- cut(1:p, breaks=nFolds, labels=FALSE)
+  #folds.rows <- cut(1:p, breaks=nFolds, labels=FALSE)
   Y.list <- vector(mode = "list", length = nFolds)    #Folds of Y as a list
   for (f in 1:nFolds) {
     Y.list[[f]] <- Y[folds.rows==f,]
@@ -42,7 +50,7 @@ ChooseK_parallel.multB.simrho <- function(Y, X=NULL, maxK, B, nFolds=10, A.lin=N
   clusterExport(cl, c("SYY", "B", "maxK", "A.lin", "c.lin", "D.ker", "Var.0", "tol.rho", "max.iter.rho", "svd.method", "p"), envir=environment())
   out.parallel <- try(parSapply(cl=cl, Y.list, XVal_K.multB.simrho))
   stopCluster(cl)
-  if (class(out.parallel) == "try-error") {
+  if ("try-error" %in% class(out.parallel)) {
     cat("Error running in parallel. Running sequentially.\n")
     out.parallel <- matrix(0, nrow=maxK+1, ncol=nFolds)
     for (i in 1:nFolds) {

@@ -2,7 +2,7 @@ require(parallel)
 
 ##This chooses K
 
-ChooseK_parallel.simrho <- function(Y, X=NULL, maxK, B, nFolds, tol.rho=1e-3, max.iter.rho=15, svd.method="fast", plotit=T, n_cores=NULL) {
+ChooseK_parallel.simrho <- function(Y, X=NULL, maxK, B, nFolds, partition.params=list(chr=NULL,pos=NULL,size=1e6), tol.rho=1e-3, max.iter.rho=15, svd.method="fast", plotit=T, n_cores=NULL) {
   if (maxK < 1) {
     return(0)
   }
@@ -23,10 +23,18 @@ ChooseK_parallel.simrho <- function(Y, X=NULL, maxK, B, nFolds, tol.rho=1e-3, ma
   SYY <- 1/p * t(Y) %*% Y
   
   ##Permute rows of Y##
-  Y <- Y[order(runif(p)),]
+  #Y <- Y[order(runif(p)),]
+  
+  ##Partition units into folds##
+  if (!is.null(partition.params$chr)) {
+    tmp.ind <- order(partition.params$chr,partition.params$pos)
+    partition.params$chr <- partition.params$chr[tmp.ind]; partition.params$pos <- partition.params$pos[tmp.ind]
+    Y <- Y[tmp.ind,]; rm(tmp.ind)
+  }
+  folds.rows <- Partition.Units(p = p, nFolds = nFolds, partition.params = partition.params)
   
   ##Perform K-fold cross validation##
-  folds.rows <- cut(1:p, breaks=nFolds, labels=FALSE)
+  #folds.rows <- cut(1:p, breaks=nFolds, labels=FALSE)
   Y.list <- vector(mode = "list", length = nFolds)    #Folds of Y as a list
   for (f in 1:nFolds) {
     Y.list[[f]] <- Y[folds.rows==f,]

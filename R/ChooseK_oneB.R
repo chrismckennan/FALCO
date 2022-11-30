@@ -3,7 +3,7 @@
 require(parallel)
 require(irlba)
 
-ChooseK_parallel <- function(Y, X=NULL, maxK, B, nFolds=10, tol.rho=1e-3, max.iter.rho=15, svd.method="fast", plotit=T, n_cores=NULL) {
+ChooseK_parallel <- function(Y, X=NULL, maxK, B, nFolds=10, partition.params=list(chr=NULL,pos=NULL,size=1e6), tol.rho=1e-3, max.iter.rho=15, svd.method="fast", plotit=T, n_cores=NULL) {
   if (maxK < 1) {
     return(0)
   }
@@ -24,12 +24,20 @@ ChooseK_parallel <- function(Y, X=NULL, maxK, B, nFolds=10, tol.rho=1e-3, max.it
   n <- ncol(Y)
   nFolds <- min(nFolds, n, p)
   
+  ##Partition units into folds##
+  if (!is.null(partition.params$chr)) {
+    tmp.ind <- order(partition.params$chr,partition.params$pos)
+    partition.params$chr <- partition.params$chr[tmp.ind]; partition.params$pos <- partition.params$pos[tmp.ind]
+    Y <- Y[tmp.ind,]; rm(tmp.ind)
+  }
+  folds.rows <- Partition.Units(p = p, nFolds = nFolds, partition.params = partition.params)
+  
   ##Permute rows of Y##
-  perm.rows <- order(runif(p))
-  Y <- Y[perm.rows,]
+  #perm.rows <- order(runif(p))
+  #Y <- Y[perm.rows,]
   
   ##Perform K-fold cross validation##
-  folds.rows <- cut(1:p, breaks=nFolds, labels=FALSE)
+  #folds.rows <- cut(1:p, breaks=nFolds, labels=FALSE)
   
   if (is.null(n_cores)) {n_cores <- max(detectCores() - 1, 1)}
   cl <- makeCluster(n_cores)

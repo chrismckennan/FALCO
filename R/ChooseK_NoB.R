@@ -58,6 +58,7 @@ ChooseK_NoB <- function(Y, X=NULL, maxK, nFolds=10, simpleDelta=F, partition.par
   if (plotit) {
     plot(out$K, out$LOO.XV, xlab="K.hat", ylab="LOO X-val")
     points(out$K[which.min(out$LOO.XV)], min(out$LOO.XV), pch="x", col="red")
+    lines(out$K, out$LOO.XV)
   }
   out$K.hat <- out$K[which.min(out$LOO.XV)]
   return(out)
