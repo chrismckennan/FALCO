@@ -24,7 +24,8 @@ library(irlba)
 #'
 #' @return A list \item{K}{A vector of latent dimensions considered} \item{LOO.XV}{A vector of the average leave-one-out cross validation for each \code{K} considered} \item{K.hat}{The \code{K} that gives the minimum leave-one-out cross validation}
 #' @export
-CBCV_plus <- function(Y, Cov=NULL, maxK=20, B=NULL, nFolds=5, simpleDelta=T, partition.params=list(chr=NULL,pos=NULL,size=1), A.ine=NULL, c.ine=NULL, A.equ=NULL, Var.0=NULL, tol.rho=1e-3, max.iter.rho=15, svd.method="slow", plotit=T, n_cores=NULL) {
+CBCV_plus <- function(Y, Cov=NULL, maxK=NULL, B=NULL, nFolds=5, simpleDelta=T, partition.params=list(chr=NULL,pos=NULL,size=1), A.ine=NULL, c.ine=NULL, A.equ=NULL, Var.0=NULL, tol.rho=1e-3, max.iter.rho=15, svd.method="slow", plotit=T, n_cores=NULL) {
+  if (is.null(maxK)) {maxK <- floor((ncol(Y) - ifelse(!is.null(Cov),NCOL(Cov),0))/2)}
   
   ##No random effect, samples are uncorrelated##
   if (is.null(B)) {
