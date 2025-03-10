@@ -67,16 +67,24 @@ ChooseK_NoB <- function(Y, X=NULL, maxK, nFolds=10, simpleDelta=F, partition.par
 ######Partition genomic units into folds######
 Partition.Units <- function(p, nFolds, partition.params) {
 	if (is.null(partition.params$chr)) {return(cut(order(runif(p)), breaks=nFolds, labels=FALSE))}
-  bin.labels <- rep(NA,p)
-  for (c in unique(partition.params$chr)) {
-    ind.c <- which(partition.params$chr==c)
-    bins.c <- c(seq(0,max(partition.params$pos[ind.c]),by=partition.params$size),Inf)
-    int.c <- findInterval(x = partition.params$pos[ind.c], vec = bins.c)
-    bin.labels[ind.c] <- paste(int.c,c,sep=".")
+  if (all(!is.na(partition.params$pos))) {
+    bin.labels <- rep(NA,p)
+    for (c in unique(partition.params$chr)) {
+      ind.c <- which(partition.params$chr==c)
+      bins.c <- c(seq(0,max(partition.params$pos[ind.c]),by=partition.params$size),Inf)
+      int.c <- findInterval(x = partition.params$pos[ind.c], vec = bins.c)
+      bin.labels[ind.c] <- paste(int.c,c,sep=".")
+    }
+    unique.bin.labels <- unique(bin.labels); unique.bin.labels <- unique.bin.labels[order(runif(length(unique.bin.labels)))]
+    cut.bins <- my.cut(x = unique.bin.labels, nFolds = nFolds)
+    return(cut.bins[match(bin.labels,unique.bin.labels)])
   }
-  unique.bin.labels <- unique(bin.labels); unique.bin.labels <- unique.bin.labels[order(runif(length(unique.bin.labels)))]
-  cut.bins <- my.cut(x = unique.bin.labels, nFolds = nFolds)
-  return(cut.bins[match(bin.labels,unique.bin.labels)])
+  bin.labels <- rep(NA,p)
+  ind.na <- which(is.na(partition.params$pos))
+  ind.not.na <- which(!is.na(partition.params$pos))
+  bin.labels[ind.not.na] <- Partition.Units(p = length(ind.not.na), nFolds = nFolds, partition.params = list(chr=partition.params$chr[ind.not.na], pos=partition.params$pos[ind.not.na], size=partition.params$size))
+  bin.labels[ind.na] <- Partition.Units(p = length(ind.na), nFolds = nFolds, partition.params = NULL)
+  return(bin.labels)
 }
 
 my.cut <- function(x, nFolds) {
